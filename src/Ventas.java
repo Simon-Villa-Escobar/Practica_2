@@ -29,8 +29,6 @@ public class Ventas {
     public Ventas() {
     }
 
-
-
     // Métodos getter y setter para cada propiedad
 
 

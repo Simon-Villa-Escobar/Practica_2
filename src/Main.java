@@ -1,18 +1,16 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-
+import java.util.stream.Collectors;
 
 public class Main {
 
-
-    public static void ventasNYC(List<Ventas> ventasList) {
-        ventasList.stream()
+    public static void ventasNYC(List<Ventas> ventas) {
+        ventas.stream()
                 .filter(v -> v.getCity().equals("NYC"))
                 .forEach(v -> {
                     System.out.print("orderNumber: " + v.getOrderNumber() + ", ");
@@ -43,8 +41,8 @@ public class Main {
                 });
     }
 
-    public static double ventasNewYork(List<Ventas> ventasList, String city) {
-        return ventasList.stream()
+    public static double ventasNewYork(List<Ventas> ventas, String city) {
+        return ventas.stream()
                 .filter(v -> {
                     return v.getCity().equals(city);
                 })
@@ -52,8 +50,8 @@ public class Main {
                 .sum();
     }
 
-    public static int carrosClasicosNYC(List<Ventas> ventasList, String city){
-        return ventasList.stream()
+    public static int carrosClasicosNYC(List<Ventas> ventas, String city){
+        return ventas.stream()
                 .filter(v-> {
                     return v.getCity().equals(city) && v.getProductLine().equals("Classic Cars");
                 })
@@ -62,8 +60,8 @@ public class Main {
 
     }
 
-    public static double ventasCarrosClasicosNYC(List<Ventas> ventasList, String city){
-        return ventasList.stream()
+    public static double ventasCarrosClasicosNYC(List<Ventas> ventas, String city){
+        return ventas.stream()
                 .filter(v-> {
                     return v.getCity().equals(city) && v.getProductLine().equals("Classic Cars");
                 })
@@ -73,8 +71,8 @@ public class Main {
     }
 
 
-    public static int motocicletasNYC(List<Ventas> ventasList, String city){
-        return ventasList.stream()
+    public static int motocicletasNYC(List<Ventas> ventas, String city){
+        return ventas.stream()
                 .filter(v -> {
                     return v.getCity().equals(city) && v.getProductLine().equals("Motorcycles");
                 })
@@ -82,8 +80,8 @@ public class Main {
                 .sum();
     }
 
-    public static double ventasMotocicletasNYC(List<Ventas> ventasList, String city){
-        return ventasList.stream()
+    public static double ventasMotocicletasNYC(List<Ventas> ventas, String city){
+        return ventas.stream()
                 .filter(v -> {
                     return v.getCity().equals(city) && v.getProductLine().equals("Motorcycles");
                 })
@@ -93,9 +91,9 @@ public class Main {
 
 
 
-    public static String clienteMasAutosComproEnNY(List<Ventas> ventasList) {
+    public static String clienteMasAutosComproEnNY(List<Ventas> ventas) {
         Map<String, Integer> cantidadAutosPorCliente = new HashMap<>();
-        ventasList.stream()
+        ventas.stream()
                 .filter(v -> v.getCity().equals("NYC") && (v.getProductLine().equals("Classic Cars") || v.getProductLine().equals("Vintage Cars")))
                 .forEach(v -> {
                     String cliente = v.getCustomerName();
@@ -108,9 +106,9 @@ public class Main {
                 .orElse("");
     }
 
-    public static String clienteMasCompro(List<Ventas> ventasList) {
+    public static String clienteMasCompro(List<Ventas> ventas) {
         Map<String, Integer> cantidadPorCliente = new HashMap<>();
-        ventasList.forEach(v -> {
+        ventas.forEach(v -> {
             String cliente = v.getCustomerName();
             Integer cantidad = v.getQuantityOrdered();
             cantidadPorCliente.put(cliente, cantidadPorCliente.getOrDefault(cliente, 0) + cantidad);
@@ -121,9 +119,9 @@ public class Main {
                 .orElse("No hay cliente que compró más");
     }
 
-    public static String clienteMenosCompro(List<Ventas> ventasList) {
+    public static String clienteMenosCompro(List<Ventas> ventas) {
         Map<String, Integer> cantidadPorCliente = new HashMap<>();
-        ventasList.forEach(v -> {
+        ventas.forEach(v -> {
             String cliente = v.getCustomerName();
             Integer cantidad = v.getQuantityOrdered();
             cantidadPorCliente.put(cliente, cantidadPorCliente.getOrDefault(cliente, 0) + cantidad);
@@ -137,65 +135,54 @@ public class Main {
 
 
 
-    public static List<Ventas> readVentasFromFile(String fileName) throws IOException {
-        List<Ventas> ventasList = new ArrayList<>();        //Creando una colección de reducción mutable
+    public static void main(String[] args) throws IOException {
+        Path path = Path.of("src/sales_data.csv");
+        //La parte "Charset.forName("ISO-8859-1")" es porque la codificación de mi pc es UTF-8, y para leer el archivo la codificación debe ser ISO-8859-1
+        //Esto es porque compré mi pc afuera de Colombia y venia con una configuración redeterminada de codificación diferente,
+        // no tiene los mismos caracteres entonces no puede leer algunos caracteres.
+        List<Ventas> ventas = Files.lines(path, Charset.forName("ISO-8859-1"))
+                .skip(1)
+                .map(line -> {
+                    String[] attributes = line.split(",");
+                    Ventas venta = new Ventas();
+                    venta.setOrderNumber(Integer.parseInt(attributes[0]));
+                    venta.setQuantityOrdered(Integer.parseInt(attributes[1]));
+                    venta.setPriceEach(Double.parseDouble(attributes[2]));
+                    venta.setOrderLineNumber(Integer.parseInt(attributes[3]));
+                    venta.setSales(Double.parseDouble(attributes[4]));
+                    venta.setOrderDate(attributes[5]);
+                    venta.setStatus(attributes[6]);
+                    venta.setQtrId(Integer.parseInt(attributes[7]));
+                    venta.setMonthId(Integer.parseInt(attributes[8]));
+                    venta.setYearId(Integer.parseInt(attributes[9]));
+                    venta.setProductLine(attributes[10]);
+                    venta.setMsrp(Integer.parseInt(attributes[11]));
+                    venta.setProductCode(attributes[12]);
+                    venta.setCustomerName(attributes[13]);
+                    venta.setPhone(attributes[14]);
+                    venta.setAddressLine1(attributes[15]);
+                    venta.setAddressLine2(attributes[16]);
+                    venta.setCity(attributes[17]);
+                    venta.setState(attributes[18]);
+                    venta.setPostalCode(attributes[19]);
+                    venta.setCountry(attributes[20]);
+                    venta.setTerritory(attributes[21]);
+                    venta.setContactLastName(attributes[22]);
+                    venta.setContactFirstName(attributes[23]);
+                    venta.setDealSize(attributes[24]);
+                    return venta;
+                })
+                .collect(Collectors.toList());
 
-        Pattern pattern = Pattern.compile("^(\\d+),\"(\\d+)\",\"(\\d+\\.\\d+)\",(\\d+),(\\d+\\.\\d+),\"([\\d/]+)\",\"(\\w+)\",(\\d+),(\\d+),(\\d+),\"(.+)\",(\\d+),\"(\\w+)\",\"(.+)\",\"(.+)\",\"(.+)\",\"(.+)\",\"(.+)\",(\\w+),(\\w+),(\\d+),\"(.+)\",\"(.+)\",\"(.+)\",(\\d+\\.\\d+)\",(\\w+)\"(.+)\",\"(.+)\",\"(\\w+)\"$");
-
-
-        //Las proximas lineas abren el archivo .csv y guarda los datos usando los setters de cada atributo
-        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
-            ventasList = br.lines()
-                    .skip(1) // skip header
-                    .map(line -> {
-                        Ventas ventas = new Ventas();
-                        String[] fields = pattern.matcher(line).replaceAll("$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25").split(",");
-                        ventas.setOrderNumber(Integer.parseInt(fields[0]));
-                        ventas.setQuantityOrdered(Integer.parseInt(fields[1]));
-                        ventas.setPriceEach(Double.parseDouble(fields[2]));
-                        ventas.setOrderLineNumber(Integer.parseInt(fields[3]));
-                        ventas.setSales(Double.parseDouble(fields[4]));
-                        ventas.setOrderDate(fields[5]);
-                        ventas.setStatus(fields[6]);
-                        ventas.setQtrId(Integer.parseInt(fields[7]));
-                        ventas.setMonthId(Integer.parseInt(fields[8]));
-                        ventas.setYearId(Integer.parseInt(fields[9]));
-                        ventas.setProductLine(fields[10]);
-                        ventas.setMsrp(Integer.parseInt(fields[11]));
-                        ventas.setProductCode(fields[12]);
-                        ventas.setCustomerName(fields[13]);
-                        ventas.setPhone(fields[14]);
-                        ventas.setAddressLine1(fields[15]);
-                        ventas.setAddressLine2(fields[16]);
-                        ventas.setCity(fields[17]);
-                        ventas.setState(fields[18]);
-                        ventas.setPostalCode(fields[19]);
-                        ventas.setCountry(fields[20]);
-                        ventas.setTerritory(fields[21]);
-                        ventas.setContactLastName(fields[22]);
-                        ventas.setContactFirstName(fields[23]);
-                        ventas.setDealSize(fields[24]);
-                        return ventas;
-                    })
-                    .toList();
-        }
-
-        return ventasList;
-    }
-
-
-public static void main(String[] args) throws IOException {
-    List<Ventas> ventasList = Main.readVentasFromFile("C:\\Users\\Simon\\Documents\\S2\\Lenguajes\\Java\\Practica2\\src\\sales_data.csv");      //Esta linea busca el archivo .csv
-
-    Main.ventasNYC(ventasList);
-    System.out.println("El total de ventas de New York es de: " + Main.ventasNewYork(ventasList, "NYC"));
-    System.out.println("New York vendió " + Main.carrosClasicosNYC(ventasList, "NYC") + " autos clásicos");
-    System.out.println("El total de ventas de autos clásicos en New York es de : " + Main.ventasCarrosClasicosNYC(ventasList, "NYC"));
-    System.out.println("New York vendió " + Main.motocicletasNYC(ventasList, "NYC") + " motocicletas");
-    System.out.println("El total de ventas de motocicletas en New York es de : " + Main.ventasMotocicletasNYC(ventasList, "NYC"));
-    System.out.println("El cliente que más autos compró en New York es: " + Main.clienteMasAutosComproEnNY(ventasList));
-    System.out.println("El cliente que más compró es: " + Main.clienteMasCompro(ventasList));
-    System.out.println("El cliente que menos compró es: " + Main.clienteMenosCompro(ventasList));
+        Main.ventasNYC(ventas);
+        System.out.println("El total de ventas de New York es de: " + Main.ventasNewYork(ventas, "NYC"));
+        System.out.println("New York vendió " + Main.carrosClasicosNYC(ventas, "NYC") + " autos clásicos");
+        System.out.println("El total de ventas de autos clásicos en New York es de : " + Main.ventasCarrosClasicosNYC(ventas, "NYC"));
+        System.out.println("New York vendió " + Main.motocicletasNYC(ventas, "NYC") + " motocicletas");
+        System.out.println("El total de ventas de motocicletas en New York es de : " + Main.ventasMotocicletasNYC(ventas, "NYC"));
+        System.out.println("El cliente que más autos compró en New York es: " + Main.clienteMasAutosComproEnNY(ventas));
+        System.out.println("El cliente que más compró es: " + Main.clienteMasCompro(ventas));
+        System.out.println("El cliente que menos compró es: " + Main.clienteMenosCompro(ventas));
 
     }
 }

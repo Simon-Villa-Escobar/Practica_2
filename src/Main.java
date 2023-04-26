@@ -138,7 +138,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         Path path = Path.of("src/sales_data.csv");
         //La parte "Charset.forName("ISO-8859-1")" es porque la codificación de mi pc es UTF-8, y para leer el archivo la codificación debe ser ISO-8859-1
-        //Esto es porque compré mi pc afuera de Colombia y venia con una configuración redeterminada de codificación diferente,
+        //Esto es porque compré mi pc venia con una configuración determinada de codificación diferente,
         // no tiene los mismos caracteres entonces no puede leer algunos caracteres.
         List<Ventas> ventas = Files.lines(path, Charset.forName("ISO-8859-1"))
                 .skip(1)

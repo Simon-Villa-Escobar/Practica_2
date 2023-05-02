@@ -3,7 +3,7 @@
 ## Integrantes
 
 - Simon Villa Escobar
-- Juan Diego Tamayo
+
 
 ## Descripción
 
